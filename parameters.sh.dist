@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# Copy this file, rename to parameters.sh and fill in the values below
+
+# GitHub access token, generate one at: https://github.com/settings/tokens (repo permissions)
+GITHUB_ACCESS_TOKEN=""
+
+# GitHub user who owns the repo
+GITHUB_REPO_OWNER=""
+# GitHub Repository name
+GITHUB_REPO_NAME=""
+
+# The slug of your WordPress.org plugin
+PLUGIN_SLUG=""
+# WordPress.org plugin author
+PLUGIN_AUTHOR=""

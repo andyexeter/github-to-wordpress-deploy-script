@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-# By Mike Jolley, based on work by Barry Kooij ;)
+# By Andy Palmer, based on work by Mike Jolley and Barry Kooij ;)
 # License: GPL v3
 
 # This program is free software: you can redistribute it and/or modify
@@ -16,38 +16,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-# ----- START EDITING HERE -----
-
-# THE GITHUB ACCESS TOKEN, GENERATE ONE AT: https://github.com/settings/tokens
-GITHUB_ACCESS_TOKEN="TOKEN"
-
-# The slug of your WordPress.org plugin
-PLUGIN_SLUG="your-slug-here"
-
-# GITHUB user who owns the repo
-GITHUB_REPO_OWNER="username"
-
-# GITHUB Repository name
-GITHUB_REPO_NAME="repo-name"
-
-# ----- STOP EDITING HERE -----
-
 set -e
 clear
 
+source $(dirname ${BASH_SOURCE[0]})/parameters.sh
+
 # ASK INFO
 echo "--------------------------------------------"
-echo "      Github to WordPress.org RELEASER      "
+echo "      GitHub to WordPress.org Releaser      "
 echo "--------------------------------------------"
 read -p "TAG AND RELEASE VERSION: " VERSION
 echo "--------------------------------------------"
 echo ""
-echo "Before continuing, confirm that you have done the following :)"
+echo "Before continuing, confirm that you have done the following:"
 echo ""
 read -p " - Added a changelog for "${VERSION}"?"
 read -p " - Set version in the readme.txt and main file to "${VERSION}"?"
 read -p " - Set stable tag in the readme.txt file to "${VERSION}"?"
-read -p " - Updated the POT file?"
 read -p " - Committed all changes up to GITHUB?"
 echo ""
 read -p "PRESS [ENTER] TO BEGIN RELEASING "${VERSION}
@@ -57,7 +42,7 @@ clear
 ROOT_PATH=$(pwd)"/"
 TEMP_GITHUB_REPO=${PLUGIN_SLUG}"-git"
 TEMP_SVN_REPO=${PLUGIN_SLUG}"-svn"
-SVN_REPO="http://plugins.svn.wordpress.org/"${PLUGIN_SLUG}"/"
+SVN_REPO="http://${PLUGIN_AUTHOR}@plugins.svn.wordpress.org/"${PLUGIN_SLUG}"/"
 GIT_REPO="git@github.com:"${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME}".git"
 
 # DELETE OLD TEMP DIRS
@@ -106,7 +91,10 @@ rm -f Gruntfile.js
 rm -f package.json
 rm -f .jscrsrc
 rm -f .jshintrc
+rm -f .sass-lint.yml
 rm -f composer.json
+rm -f composer.lock
+rm -f yarn.lock
 rm -f phpunit.xml
 rm -f phpunit.xml.dist
 rm -f README.md
@@ -157,14 +145,14 @@ read -p "PRESS [ENTER] TO COMMIT RELEASE "${VERSION}" TO WORDPRESS.ORG AND GITHU
 echo ""
 
 # CREATE THE GITHUB RELEASE
-echo "Creating GITHUB release"
+echo "Creating GitHub release"
 API_JSON=$(printf '{ "tag_name": "%s","target_commitish": "%s","name": "%s", "body": "Release of version %s", "draft": false, "prerelease": false }' $VERSION $BRANCH $VERSION $VERSION)
 RESULT=$(curl --data "${API_JSON}" https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases?access_token=${GITHUB_ACCESS_TOKEN})
 
 # DEPLOY
 echo ""
 echo "Committing to WordPress.org...this may take a while..."
-svn commit -m "Release "${VERSION}", see readme.txt for the changelog." || { echo "Unable to commit."; exit 1; }
+svn commit -m "Release "${VERSION}", see readme.txt for the changelog." --username=${PLUGIN_AUTHOR} || { echo "Unable to commit."; exit 1; }
 
 # REMOVE THE TEMP DIRS
 echo "CLEANING UP"
@@ -172,4 +160,4 @@ rm -Rf $ROOT_PATH$TEMP_GITHUB_REPO
 rm -Rf $ROOT_PATH$TEMP_SVN_REPO
 
 # DONE, BYE
-echo "RELEASER DONE :D"
+echo "${VERSION} RELEASED!"
